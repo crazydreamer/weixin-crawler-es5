@@ -46,20 +46,20 @@ function requestList(page) {
   });
   var body = result.data.toString();
   ensureResult(body);
-  try {
-    eval(body);
-  } catch (ex) {
-    ex.name = 'HandleListError';
-    ex.url = ex.url || url;
-    ex.originBody = ex.originBody || body;
-    return onerror(ex);
-  }
+//  try {
+//    eval(body);
+//  } catch (ex) {
+//    ex.name = 'HandleListError';
+//    ex.url = ex.url || url;
+//    ex.originBody = ex.originBody || body;
+//    return onerror(ex);
+//  }
 }
 
 // 请求文章详情页
 function requestArticle(link) {
   var url = apiRoot + link;
-  console.log('[%s] %', new Date(), url);
+  console.log('[%s] %s', new Date(), url);
   var result = request(url, {
     timeout: 5000,
     headers: mockHeaders,
