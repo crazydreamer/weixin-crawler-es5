@@ -2,23 +2,22 @@
 
 var request = require('urllib-sync').request;
 var sleep = require('sleep').sleep;
-var xmldoc = require('xmldoc');
 var path = require('path');
 var fs = require('fs');
+var util = require('util');
+var cheerio = require('cheerio');
 
 var outputDir = path.join(__dirname, 'out');
 var apiRoot = 'http://weixin.sogou.com';
-var openId = 'oIWsFtxeRmps0rYmGp4YfFuFemv0';
-var ext = '0rtEYLQriOO1Zyn1UU6JUj0hciWvLFrkn0AR7LWPWjk6qS7bg2ZYSLPQ6Y63f5kD';
-var userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.86 Safari/537.36';
+var userAgent = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36';
 var mockHeaders = {
-  'Cookie': 'CXID=870C18F2A7F60593504B09F2D642299E; SUID=9806D771556C860A56469ABC00081AC0; ad=Qyllllllll2QSI$DlllllVBp7wwllllltNtpullllxtlllllROxlw@@@@@@@@@@@; ABTEST=0|1447655412|v1; SUV=005678392A784B02564977F4AC1FE321; weixinIndexVisited=1; SNUID=175F6C3E151030B79E467A35158C8D67; ppinf=5|1447661995|1448871595|Y2xpZW50aWQ6NDoyMDE3fGNydDoxMDoxNDQ3NjYxOTk1fHJlZm5pY2s6NzpyaWNoYXJkfHRydXN0OjE6MXx1c2VyaWQ6NDQ6MDdDMTk5NUE1RjY2OEI3MDdCM0Q3MjhBRjk0QjhDNjFAcXEuc29odS5jb218dW5pcW5hbWU6NzpyaWNoYXJkfA; pprdig=vYoosRiYsly_dG9xF4QZKwieMbWcY4PgXc3JzrBb-fUNhpLIdXnOovlLaFQ80Wh5daXoxUH0xefLMdjdh_85C8BuoQ_XrEnJljk7xdQu04xXmX0Bjj_GVxZ-tzPpNWCHnq_8KitC386i9AZRDuYWHLnIRN-2wi_aJln7Tz9Plog; PHPSESSID=ag3qu15q3s69vnv1kdl4rbpnl4; SUIR=175F6C3E151030B79E467A35158C8D67; ppmdig=1447681981000000154dc1b9b56d4530abda30e346f3be48; sct=7; wapsogou_qq_nickname=; IPLOC=CN3100',
+  'Cookie': 'CXID=B3EBF622BC23A4DD15784FC9617F7C36; SUID=52FC111B142D900A55B72DFB0004A20B; SUV=1439361586856051; pgv_pvi=2340838400; IPLOC=CN4201; GOTO=Af99046; ssuid=2533552660; ABTEST=7|1456628081|v1; weixinIndexVisited=1; ld=WZllllllll2Q1IgtlllllVbvOWllllllpenAGyllllwlllll4llll5@@@@@@@@@@; ad=Dyllllllll2qHhTElllllVbvZrDlllllpe4DUkllll7lllll4llll5@@@@@@@@@@; SNUID=DBF8575D68624579EA0C8380680A8B98; sct=25; LSTMV=64%2C351; LCLKINT=969',
   'Host': 'weixin.sogou.com',
   'User-Agent': userAgent,
 };
 var skipPage = 0;
 var totalPage = 10;
-var interval = 60; // 60s
+var interval = 10; // 60s
 
 function onerror(err) {
   console.log(err);
@@ -38,7 +37,7 @@ function ensureResult(body) {
 
 // 请求文章列表页
 function requestList(page) {
-  var url = apiRoot + '/gzh?cb=handleList&openid=' + openId + '&ext=' + ext + '&page=' + page + '&t=' + new Date().getTime();
+  var url = apiRoot + util.format('/weixin?query=%s&sourceid=inttime_day&type=2&interation=&tsn=1&t=' + new Date().getTime(), 'node.js');
   console.log('[%s] %s', new Date(), url);
   var result = request(url, {
     timeout: 5000,
@@ -46,14 +45,8 @@ function requestList(page) {
   });
   var body = result.data.toString();
   ensureResult(body);
-//  try {
-//    eval(body);
-//  } catch (ex) {
-//    ex.name = 'HandleListError';
-//    ex.url = ex.url || url;
-//    ex.originBody = ex.originBody || body;
-//    return onerror(ex);
-//  }
+//  console.log(body);
+  handleList(body);
 }
 
 // 请求文章详情页
@@ -85,20 +78,33 @@ function requestArticle(link) {
 }
 
 function handleList(res) {
-  var items = res.items || [];
-  items.forEach(function(item) {
-    var doc = new xmldoc.XmlDocument(item);
-    var node = doc.children[1].children[3].children;
-    var articleTitle = node[2].val.trim();
-    var articleLink = node[3].val.trim();
-    handleArticle(articleLink, articleTitle);
+  var articleList = [];
+  var $ = cheerio.load(res, {normalizeWhitespace: true});
+  var $chapters = $('.wx-rb .txt-box');
+
+  $chapters.each(function(index, chapter) {
+    var title = $(chapter).find('h4 a').text();
+    var link = $(chapter).find('h4 a').attr('href');
+    var $weixinAccount = $(chapter).find('.s-p a#weixin_account');
+    var weixinAccountName = $weixinAccount.attr('title');
+    var weixinAccountLink = $weixinAccount.attr('href');
+
+    articleList.push({
+      title: title,
+      link: link,
+      accountName: weixinAccountName,
+      accountLink: weixinAccountLink
+    });
+
+    handleArticle(link, title);
     sleep(interval);
   });
 }
 
 function handleArticle(link, title) {
+  console.log(title);
   var raw = requestArticle(link);
-  var filePath = path.join(outputDir, $(title).html);
+  var filePath = path.join(outputDir, new Date().getTime() + '.html');
   fs.writeFileSync(filePath, raw, 'utf-8');
 }
 
