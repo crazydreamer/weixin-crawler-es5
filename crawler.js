@@ -11,7 +11,7 @@ var outputDir = path.join(__dirname, 'out');
 var apiRoot = 'http://weixin.sogou.com';
 var userAgent = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36';
 var mockHeaders = {
-  'Cookie': 'CXID=B3EBF622BC23A4DD15784FC9617F7C36; SUID=52FC111B142D900A55B72DFB0004A20B; SUV=1439361586856051; pgv_pvi=2340838400; IPLOC=CN4201; GOTO=Af99046; ssuid=2533552660; ABTEST=7|1456628081|v1; weixinIndexVisited=1; ld=WZllllllll2Q1IgtlllllVbvOWllllllpenAGyllllwlllll4llll5@@@@@@@@@@; ad=Dyllllllll2qHhTElllllVbvZrDlllllpe4DUkllll7lllll4llll5@@@@@@@@@@; SNUID=DBF8575D68624579EA0C8380680A8B98; sct=25; LSTMV=64%2C351; LCLKINT=969',
+  'Cookie': 'CXID=B3EBF622BC23A4DD15784FC9617F7C36; SUID=52FC111B142D900A55B72DFB0004A20B; SUV=1439361586856051; pgv_pvi=2340838400; GOTO=Af99046; ssuid=2533552660; ABTEST=7|1456628081|v1; weixinIndexVisited=1; sct=28; ld=Lkllllllll2Q1IgtlllllVbA1FwlllllpenAGyllllwllllljZlll5@@@@@@@@@@; ad=$lllllllll2qHhTElllllVboMpolllllpe4DUkllll9lllll9llll5@@@@@@@@@@; SNUID=1E2AAB71D9DCF7FEAFB1DC92DAB07032; IPLOC=CN4200',
   'Host': 'weixin.sogou.com',
   'User-Agent': userAgent,
 };
@@ -95,6 +95,8 @@ function handleList(res) {
       accountName: weixinAccountName,
       accountLink: weixinAccountLink
     });
+
+    console.log(articleList);
 
     handleArticle(link, title);
     sleep(interval);

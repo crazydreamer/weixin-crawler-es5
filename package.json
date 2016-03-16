@@ -8,11 +8,12 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "cheerio": "0.15.0",
+    "node-schedule": "^1.1.0",
     "sleep": "~3.0.0",
     "urllib-sync": "~1.1.2",
-    "cheerio": "0.15.0",
-    "xmldoc": "~0.3.2",
-    "wxr": "~0.1.1"
+    "wxr": "~0.1.1",
+    "xmldoc": "~0.3.2"
   },
   "engines": {
     "node": "4.2.1"
