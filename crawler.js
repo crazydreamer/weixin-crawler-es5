@@ -11,7 +11,7 @@ var outputDir = path.join(__dirname, 'out');
 var apiRoot = 'http://weixin.sogou.com';
 var userAgent = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36';
 var mockHeaders = {
-  'Cookie': 'CXID=B3EBF622BC23A4DD15784FC9617F7C36; SUID=52FC111B142D900A55B72DFB0004A20B; SUV=1439361586856051; pgv_pvi=2340838400; GOTO=Af99046; ssuid=2533552660; ABTEST=7|1456628081|v1; weixinIndexVisited=1; sct=28; ld=Lkllllllll2Q1IgtlllllVbA1FwlllllpenAGyllllwllllljZlll5@@@@@@@@@@; ad=$lllllllll2qHhTElllllVboMpolllllpe4DUkllll9lllll9llll5@@@@@@@@@@; SNUID=1E2AAB71D9DCF7FEAFB1DC92DAB07032; IPLOC=CN4200',
+  'Cookie': 'CXID=B3EBF622BC23A4DD15784FC9617F7C36; SUID=52FC111B142D900A55B72DFB0004A20B; SUV=1439361586856051; pgv_pvi=2340838400; GOTO=Af99046; ssuid=2533552660; ABTEST=7|' + parseInt(new Date().getTime() / 1000 + '') + '|v1; weixinIndexVisited=1; sct=28; ld=Lkllllllll2Q1IgtlllllVbA1FwlllllpenAGyllllwllllljZlll5@@@@@@@@@@; ad=$lllllllll2qHhTElllllVboMpolllllpe4DUkllll9lllll9llll5@@@@@@@@@@; SNUID=487FFE248E8BA1EB37E27DB28F4DF23E; IPLOC=CN4200',
   'Host': 'weixin.sogou.com',
   'User-Agent': userAgent,
 };
@@ -38,6 +38,7 @@ function ensureResult(body) {
 // 请求文章列表页
 function requestList(page) {
   var url = apiRoot + util.format('/weixin?query=%s&sourceid=inttime_day&type=2&interation=&tsn=1&t=' + new Date().getTime(), 'node.js');
+  console.log(apiRoot);
   console.log('[%s] %s', new Date(), url);
   var result = request(url, {
     timeout: 5000,
@@ -51,8 +52,8 @@ function requestList(page) {
 
 // 请求文章详情页
 function requestArticle(link) {
-  var url = apiRoot + link;
-  console.log('[%s] %s', new Date(), url);
+  var url = link.indexOf('weixin.qq') === -1 ? apiRoot + link : link;
+  console.log('[%s] requestArticle => %s', new Date(), url);
   var result = request(url, {
     timeout: 5000,
     headers: mockHeaders,
@@ -70,7 +71,7 @@ function requestArticle(link) {
     err.originBody = body;
     return onerror(err);
   }
-  console.log('[%s] %s', new Date(), redirUrl);
+  console.log('[%s] redirUrl => %s', new Date(), redirUrl);
   var redirResult = request(redirUrl, {timeout: 5000});
   var redirBody = redirResult.data.toString();
   ensureResult(redirBody);
@@ -96,7 +97,7 @@ function handleList(res) {
       accountLink: weixinAccountLink
     });
 
-    console.log(articleList);
+    console.log('articleList: ', articleList);
 
     handleArticle(link, title);
     sleep(interval);
@@ -107,7 +108,7 @@ function handleArticle(link, title) {
   console.log(title);
   var raw = requestArticle(link);
   var filePath = path.join(outputDir, new Date().getTime() + '.html');
-  fs.writeFileSync(filePath, raw, 'utf-8');
+  //fs.writeFileSync(filePath, raw, 'utf-8');
 }
 
 if (!fs.existsSync(outputDir)) {
