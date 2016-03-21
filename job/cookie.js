@@ -6,13 +6,14 @@
 var request = require('superagent');
 var schedule = require('node-schedule');
 var client = require('../lib/redis');
+var util = require('../lib/util');
 
 
 function getCookie() {
   for(var i = 0, len = 10; i < len; i++) {
     setTimeout(function() {
       request
-        .get('http://weixin.sogou.com/weixin?query=' + Math.random())
+        .get('http://weixin.sogou.com/weixin?query=' + util.randomStr().base10())
         .end(function(err, res){
           var SNUID = res.header['set-cookie'][1].split(';')[0];
           SNUID = SNUID.indexOf('SNUID') !== -1 ? SNUID.split('=')[1] : '';
@@ -21,11 +22,13 @@ function getCookie() {
               console.log('result: ', result);
             });
           }
-          console.log(res.header);
+          //console.log(res.header);
           console.log('SNUID:', res.header['set-cookie'][1].split(';')[0].split('=')[1]);
         });
-    }, 100 * i);
+    }, 1000 * i);
   }
 }
 
-schedule.scheduleJob('* */6 * * * *', getCookie);
+console.log('Get Cookie Job Start...');
+schedule.scheduleJob('* */6 * * * *', getCookie); // do job every six hours
+getCookie();
