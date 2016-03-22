@@ -1,10 +1,16 @@
-# weixin-crawler
+# weixin-crawler-es5
+
+这还是个非常简单的微信爬虫，但是实现了抓取的过程，以及cookie的问题。
 
 ## How to use
 
-启动爬虫：
+### 启动爬虫：
 ```js
-node crawler.js
+npm start
 ```
 
-此时会在当前目录下新建一个 `out` 目录，爬取到的内容会保存在这里面。
+### 启动cookie池任务
+
+```js
+npm run cookie
+```

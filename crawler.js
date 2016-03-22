@@ -6,12 +6,13 @@ var path = require('path');
 var fs = require('fs');
 var util = require('util');
 var cheerio = require('cheerio');
+var redis = require('./lib/redis');
+var cookie = require('./job/cookie');
 
-var outputDir = path.join(__dirname, 'out');
 var apiRoot = 'http://weixin.sogou.com';
 var userAgent = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36';
 var mockHeaders = {
-  'Cookie': 'CXID=B3EBF622BC23A4DD15784FC9617F7C36; SUID=52FC111B142D900A55B72DFB0004A20B; SUV=1439361586856051; pgv_pvi=2340838400; GOTO=Af99046; ssuid=2533552660; ABTEST=7|' + parseInt(new Date().getTime() / 1000 + '') + '|v1; weixinIndexVisited=1; sct=28; ld=Lkllllllll2Q1IgtlllllVbA1FwlllllpenAGyllllwllllljZlll5@@@@@@@@@@; ad=$lllllllll2qHhTElllllVboMpolllllpe4DUkllll9lllll9llll5@@@@@@@@@@; SNUID=487FFE248E8BA1EB37E27DB28F4DF23E; IPLOC=CN4200',
+  'Cookie': 'CXID=B3EBF622BC23A4DD15784FC9617F7C36; SUID=52FC111B142D900A55B72DFB0004A20B; SUV=1439361586856051; pgv_pvi=2340838400; GOTO=Af99046; ssuid=2533552660; ABTEST=7|' + parseInt(new Date().getTime() / 1000 + '') + '|v1; weixinIndexVisited=1; sct=28; ld=Lkllllllll2Q1IgtlllllVbA1FwlllllpenAGyllllwllllljZlll5@@@@@@@@@@; ad=$lllllllll2qHhTElllllVboMpolllllpe4DUkllll9lllll9llll5@@@@@@@@@@; SNUID={SNUID}; IPLOC=CN4200',
   'Host': 'weixin.sogou.com',
   'User-Agent': userAgent,
 };
@@ -78,6 +79,21 @@ function requestArticle(link) {
   return redirBody;
 }
 
+/**
+ * 解析真实url
+ * @returns {*|string}
+ */
+function handleRedirectUrl(link) {
+  var url = link.indexOf('weixin.qq') === -1 ? apiRoot + link : link;
+  console.log('[%s] requestArticle => %s', new Date(), url);
+  var result = request(url, {
+    timeout: 5000,
+    headers: mockHeaders
+  });
+  var headers = result.headers || {};
+  return headers['location'] || '';
+}
+
 function handleList(res) {
   var articleList = [];
   var $ = cheerio.load(res, {normalizeWhitespace: true});
@@ -92,32 +108,33 @@ function handleList(res) {
 
     articleList.push({
       title: title,
-      link: link,
+      link: handleRedirectUrl(link),
       accountName: weixinAccountName,
-      accountLink: weixinAccountLink
+      accountLink: apiRoot + weixinAccountLink
     });
 
-    console.log('articleList: ', articleList);
-
-    handleArticle(link, title);
     sleep(interval);
+  });
+
+  console.log('articleList: ', articleList);
+
+  //请求自己的数据接口发送数据
+}
+
+/**
+ * 爬取
+ */
+function crawl() {
+  redis.srandmember(cookie.key, function(err, result) {
+    if (err) return onerror(err);
+    for (var page = 1 + skipPage; page <= totalPage; page++) {
+      requestList(page);
+      sleep(interval);
+    }
   });
 }
 
-function handleArticle(link, title) {
-  console.log(title);
-  var raw = requestArticle(link);
-  var filePath = path.join(outputDir, new Date().getTime() + '.html');
-  //fs.writeFileSync(filePath, raw, 'utf-8');
-}
+crawl();
 
-if (!fs.existsSync(outputDir)) {
-  fs.mkdirSync(outputDir);
-}
-
-for (var page = 1 + skipPage; page <= totalPage; page++) {
-  requestList(page);
-  sleep(interval);
-}
 
 
