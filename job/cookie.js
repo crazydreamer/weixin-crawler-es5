@@ -13,7 +13,7 @@ function getCookie() {
   for(var i = 0, len = 10; i < len; i++) {
     setTimeout(function() {
       request
-        .get('http://weixin.sogou.com/weixin?query=' + util.randomStr().base10())
+        .get('http://weixin.sogou.com/weixin?query=' + util.randomStr(4).base36())
         .end(function(err, res){
           var SNUID = res.header['set-cookie'][1].split(';')[0];
           SNUID = SNUID.indexOf('SNUID') !== -1 ? SNUID.split('=')[1] : '';
