@@ -119,6 +119,7 @@ function handleList(res) {
   console.log('articleList: ', articleList);
 
   //请求自己的数据接口发送数据
+
 }
 
 /**
@@ -126,6 +127,8 @@ function handleList(res) {
  */
 function crawl() {
   redis.srandmember(cookie.key, function(err, result) {
+    console.log('get SNUID from pool:', result);
+    mockHeaders.Cookie = mockHeaders.Cookie.replace('{SNUID}', result);
     if (err) return onerror(err);
     for (var page = 1 + skipPage; page <= totalPage; page++) {
       requestList(page);
