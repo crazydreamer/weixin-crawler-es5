@@ -13,13 +13,13 @@ var cookie = require('./job/cookie');
 var apiRoot = 'http://weixin.sogou.com';
 var userAgent = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36';
 var mockHeaders = {
-  'Cookie': 'CXID=B3EBF622BC23A4DD15784FC9617F7C36; SUID=52FC111B142D900A55B72DFB0004A20B; SUV=1439361586856051; pgv_pvi=2340838400; GOTO=Af99046; ssuid=2533552660; ABTEST=7|' + parseInt(new Date().getTime() / 1000 + '') + '|v1; weixinIndexVisited=1; sct=28; ld=Lkllllllll2Q1IgtlllllVbA1FwlllllpenAGyllllwllllljZlll5@@@@@@@@@@; ad=$lllllllll2qHhTElllllVboMpolllllpe4DUkllll9lllll9llll5@@@@@@@@@@; SNUID={SNUID}; IPLOC=CN4200',
+  'Cookie': 'CXID=B3EBF622BC23A4DD15784FC9617F7C36; SUID=52FC111B142D900A55B72DFB0004A20B; SUV=1439361586856051; pgv_pvi=2340838400; GOTO=Af99046; ssuid=2533552660; ABTEST=7|' + parseInt(new Date().getTime() / 1000 + '') + '|v1; weixinIndexVisited=1; sct=28; ld=Lkllllllll2Q1IgtlllllVbA1FwlllllpenAGyllllwllllljZlll5@@@@@@@@@@; ad=$lllllllll2qHhTElllllVboMpolllllpe4DUkllll9lllll9llll5@@@@@@@@@@; SNUID={SNUID}; IPLOC=CN4201',
   'Host': 'weixin.sogou.com',
   'User-Agent': userAgent,
 };
 var skipPage = 0;
 var totalPage = 10;
-var interval = 3; // 60s
+var interval = 5; // 60s
 
 function onerror(err) {
   console.log(err);
@@ -120,21 +120,17 @@ function handleList(res) {
 
     console.log(article);
 
-    req
-      .post({
-        url: 'http://blog.gaoqixhb.com/api/topic/add',
-        form: article
-      }, function(err, res) {
-        if (err) {
-          console.log('err:', err);
-        }
-        // Calling the end function will send the request
-        console.log('res:', res);
-      });
     sleep(interval);
   });
 
   console.log('articleList: ', articleList);
+
+  articleList.forEach(function(article) {
+    console.log('post data =>', article);
+    req
+      .post('http://blog.gaoqixhb.com/api/topic/add')
+      .form(article);
+  });
 }
 
 /**
