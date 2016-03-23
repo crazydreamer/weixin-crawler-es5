@@ -140,7 +140,7 @@ function crawl() {
   console.log('key:', cookie.key);
   redis.srandmember(cookie.key, function(err, result) {
     if (err) return onerror(err);
-
+    console.log('SUNID from redis:', result);
     result = result || '6E58D903A9AD86069D3733E3A916887E';
 
     console.log('get SNUID from pool:', result);
