@@ -47,6 +47,7 @@ function requestList(page) {
     headers: mockHeaders,
   });
   var body = result.data.toString();
+//  console.log(body);
   ensureResult(body);
 //  console.log(body);
   handleList(body);
@@ -91,6 +92,8 @@ function handleRedirectUrl(link) {
     timeout: 5000,
     headers: mockHeaders
   });
+  var body = result.data.toString();
+  console.log(body);
   var headers = result.headers || {};
   //console.log('redirectUrl', headers['location']);
   return headers['location'] || '';
@@ -138,19 +141,21 @@ function handleList(res) {
  */
 function crawl() {
   console.log('key:', cookie.key);
-  redis.srandmember(cookie.key, function(err, result) {
-    if (err) return onerror(err);
-    console.log('SUNID from redis:', result);
-    result = result || '6E58D903A9AD86069D3733E3A916887E';
+  redis
+    .multi()
+    .srandmember(cookie.key)
+    .exec(function(err, result) {
+      if (err) return onerror(err);
+      result = result || '6E58D903A9AD86069D3733E3A916887E';
 
-    console.log('get SNUID from pool:', result);
-    mockHeaders.Cookie = mockHeaders.Cookie.replace('{SNUID}', result);
-    if (err) return onerror(err);
-    for (var page = 1 + skipPage; page <= totalPage; page++) {
-      requestList(page);
-      sleep(interval);
-    }
-  });
+      console.log('get SNUID from pool:', result);
+      mockHeaders.Cookie = mockHeaders.Cookie.replace('{SNUID}', result);
+      if (err) return onerror(err);
+      for (var page = 1 + skipPage; page <= totalPage; page++) {
+        requestList(page);
+        sleep(interval);
+      }
+    });
 }
 
 crawl();
