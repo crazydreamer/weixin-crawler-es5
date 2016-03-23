@@ -113,23 +113,21 @@ function handleList(res) {
 
     var redirectUrl = handleRedirectUrl(link);
 
-    if (redirectUrl.indexOf('antispider') >= 0) {
-      return
+    if (redirectUrl && redirectUrl.indexOf('antispider') < 0) {
+      var article = {
+        title: title,
+        link: redirectUrl,
+        accountName: weixinAccountName,
+        accountLink: apiRoot + weixinAccountLink,
+        category: 'node.js'
+      };
+
+      articleList.push(article);
+
+      console.log(article);
+
+      sleep(interval);
     }
-
-    var article = {
-      title: title,
-      link: redirectUrl,
-      accountName: weixinAccountName,
-      accountLink: apiRoot + weixinAccountLink,
-      category: 'node.js'
-    };
-
-    articleList.push(article);
-
-    console.log(article);
-
-    sleep(interval);
   });
 
   console.log('articleList: ', articleList);
