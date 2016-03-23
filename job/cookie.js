@@ -17,7 +17,7 @@ function getCookie() {
   for(var i = 0, len = 10; i < len; i++) {
     setTimeout(function() {
       request
-        .get('http://weixin.sogou.com/weixin?query=' + util.randomStr(4).base36())
+        .get('http://weixin.sogou.com/weixin?query=' + util.randomStr(2).base62())
         .end(function(err, res){
           var SNUID = res.header['set-cookie'][1].split(';')[0];
           SNUID = SNUID.indexOf('SNUID') !== -1 ? SNUID.split('=')[1] : '';
@@ -40,7 +40,7 @@ function clearContainer() {
 }
 
 console.log('Get Cookie Job Start...');
-schedule.scheduleJob('* */6 * * * *', getCookie); // do job every six hours
-schedule.scheduleJob('* */6 * * * *', clearContainer);//clear cookie pool every six hours
+schedule.scheduleJob('* * */6 * *', getCookie); // do job every six hours
+schedule.scheduleJob('* * */6 * *', clearContainer);//clear cookie pool every six hours
 clearContainer();
 getCookie();
