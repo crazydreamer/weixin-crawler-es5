@@ -111,9 +111,15 @@ function handleList(res) {
     var weixinAccountName = $weixinAccount.attr('title');
     var weixinAccountLink = $weixinAccount.attr('href');
 
+    var redirectUrl = handleRedirectUrl(link);
+
+    if (redirectUrl.indexOf('antispider') >= 0) {
+      return
+    }
+
     var article = {
       title: title,
-      link: handleRedirectUrl(link),
+      link: redirectUrl,
       accountName: weixinAccountName,
       accountLink: apiRoot + weixinAccountLink,
       category: 'node.js'
