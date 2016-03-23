@@ -6,7 +6,7 @@ var path = require('path');
 var fs = require('fs');
 var util = require('util');
 var cheerio = require('cheerio');
-var req = require('superagent');
+var req = require('request');
 var redis = require('./lib/redis');
 var cookie = require('./job/cookie');
 
@@ -86,13 +86,13 @@ function requestArticle(link) {
  */
 function handleRedirectUrl(link) {
   var url = link.indexOf('weixin.qq') === -1 ? apiRoot + link : link;
-  console.log('[%s] requestArticle => %s', new Date(), url);
+  //console.log('[%s] requestArticle => %s', new Date(), url);
   var result = request(url, {
     timeout: 5000,
     headers: mockHeaders
   });
   var headers = result.headers || {};
-  console.log('redirectUrl', headers['location']);
+  //console.log('redirectUrl', headers['location']);
   return headers['location'] || '';
 }
 
@@ -108,29 +108,33 @@ function handleList(res) {
     var weixinAccountName = $weixinAccount.attr('title');
     var weixinAccountLink = $weixinAccount.attr('href');
 
-    articleList.push({
+    var article = {
       title: title,
       link: handleRedirectUrl(link),
       accountName: weixinAccountName,
       accountLink: apiRoot + weixinAccountLink,
       category: 'node.js'
-    });
+    };
 
+    articleList.push(article);
+
+    console.log(article);
+
+    req
+      .post({
+        url: 'http://blog.gaoqixhb.com/api/topic/add',
+        form: article
+      }, function(err, res) {
+        if (err) {
+          console.log('err:', err);
+        }
+        // Calling the end function will send the request
+        console.log('res:', res);
+      });
     sleep(interval);
   });
 
   console.log('articleList: ', articleList);
-
-  //请求自己的数据接口发送数据
-  articleList.forEach(function(article) {
-    req
-      .post('localhost:3001/topic/add')
-      .send(article)
-      .end(function(err, res){
-        // Calling the end function will send the request
-        console.log('res:', res);
-      });
-  })
 }
 
 /**
@@ -140,6 +144,9 @@ function crawl() {
   console.log('key:', cookie.key);
   redis.srandmember(cookie.key, function(err, result) {
     if (err) return onerror(err);
+
+    result = result || '6E58D903A9AD86069D3733E3A916887E';
+
     console.log('get SNUID from pool:', result);
     mockHeaders.Cookie = mockHeaders.Cookie.replace('{SNUID}', result);
     if (err) return onerror(err);
