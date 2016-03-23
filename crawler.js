@@ -19,7 +19,7 @@ var mockHeaders = {
 };
 var skipPage = 0;
 var totalPage = 10;
-var interval = 5; // 60s
+var interval = 10; // 60s
 
 function onerror(err) {
   console.log(err);
