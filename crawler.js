@@ -6,6 +6,7 @@ var path = require('path');
 var fs = require('fs');
 var util = require('util');
 var cheerio = require('cheerio');
+var req = require('superagent');
 var redis = require('./lib/redis');
 var cookie = require('./job/cookie');
 
@@ -18,7 +19,7 @@ var mockHeaders = {
 };
 var skipPage = 0;
 var totalPage = 10;
-var interval = 10; // 60s
+var interval = 3; // 60s
 
 function onerror(err) {
   console.log(err);
@@ -91,6 +92,7 @@ function handleRedirectUrl(link) {
     headers: mockHeaders
   });
   var headers = result.headers || {};
+  console.log('redirectUrl', headers['location']);
   return headers['location'] || '';
 }
 
@@ -110,7 +112,8 @@ function handleList(res) {
       title: title,
       link: handleRedirectUrl(link),
       accountName: weixinAccountName,
-      accountLink: apiRoot + weixinAccountLink
+      accountLink: apiRoot + weixinAccountLink,
+      category: 'node.js'
     });
 
     sleep(interval);
@@ -119,14 +122,24 @@ function handleList(res) {
   console.log('articleList: ', articleList);
 
   //请求自己的数据接口发送数据
-
+  articleList.forEach(function(article) {
+    req
+      .post('localhost:3001/topic/add')
+      .send(article)
+      .end(function(err, res){
+        // Calling the end function will send the request
+        console.log('res:', res);
+      });
+  })
 }
 
 /**
  * 爬取
  */
 function crawl() {
+  console.log('key:', cookie.key);
   redis.srandmember(cookie.key, function(err, result) {
+    if (err) return onerror(err);
     console.log('get SNUID from pool:', result);
     mockHeaders.Cookie = mockHeaders.Cookie.replace('{SNUID}', result);
     if (err) return onerror(err);
